@@ -1,25 +1,34 @@
 import { CanvasConfig, createCanvas } from "../../bin/createCanvas";
-import { addBall, Ball } from "./ball";
+import { addBall, Ball, drawBalls } from "./ball";
 import { addListeners, Handler } from "./listeners";
 
 export const gravity = (config?: CanvasConfig) => {
   const canvas = createCanvas(config);
 
+  const balls: Ball[] = [];
+  const gravityForce = 10;
+
+  drawGravity(canvas, balls, gravityForce);
+};
+
+const drawGravity = (
+  canvas: HTMLCanvasElement,
+  balls: Ball[],
+  gravityForce: number
+) => {
   const context = canvas.getContext("2d");
 
   if (!context) {
     throw new Error("Can not get 2D context");
   }
 
-  drawGravity(canvas);
-
-  const balls: Ball[] = [];
+  gravityAnimation(context, balls);
 
   const standartBall: Ball = {
     x: 0,
     y: 0,
     dx: 0,
-    dy: 0,
+    dy: gravityForce,
     radius: 10,
     color: "red",
   };
@@ -33,9 +42,7 @@ export const gravity = (config?: CanvasConfig) => {
       y: event.clientY - standartBall.radius,
     };
 
-    const ball = addBall(context, config);
-
-    balls.push(ball);
+    addBall(balls, config);
   };
 
   handlers.push({
@@ -46,4 +53,13 @@ export const gravity = (config?: CanvasConfig) => {
   const removeEventListeners = addListeners(canvas, handlers);
 };
 
-const drawGravity = (canvas: HTMLCanvasElement) => {};
+const gravityAnimation = (context: CanvasRenderingContext2D, balls: Ball[]) => {
+  balls.forEach((ball) => {
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+  });
+
+  drawBalls(context, balls);
+
+  requestAnimationFrame(() => gravityAnimation(context, balls));
+};
