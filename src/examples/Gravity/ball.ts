@@ -1,3 +1,5 @@
+import { Obstacle } from "./obstacle";
+
 export type Ball = {
   x: number;
   y: number;
@@ -17,14 +19,16 @@ export const addBall = (balls: Ball[], config: Ball) => {
   return ball;
 };
 
-const drawBall = (context: CanvasRenderingContext2D, ball: Ball) => {
+const drawBall = (
+  context: CanvasRenderingContext2D,
+  ball: Ball,
+  obstacles: Obstacle[]
+) => {
   context.beginPath();
   const bottom = ball.y + ball.radius;
   const right = ball.x + ball.radius;
   const left = ball.x - ball.radius;
   const top = ball.y - ball.radius;
-
-  console.log(bottom);
 
   if (bottom > context.canvas.height - ball.dy) {
     ball.dy = 0;
@@ -48,9 +52,13 @@ const drawBall = (context: CanvasRenderingContext2D, ball: Ball) => {
   context.fill();
 };
 
-export const drawBalls = (context: CanvasRenderingContext2D, balls: Ball[]) => {
+export const drawBalls = (
+  context: CanvasRenderingContext2D,
+  balls: Ball[],
+  obstacles: Obstacle[]
+) => {
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
   balls.forEach((ball) => {
-    drawBall(context, ball);
+    drawBall(context, ball, obstacles);
   });
 };
