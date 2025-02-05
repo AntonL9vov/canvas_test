@@ -42,7 +42,7 @@ const drawBall = (
     ball.dx = -ball.dx;
     ball.x = context.canvas.width - ball.radius;
   }
-  if (left < 0 + ball.dx) {
+  if (left < ball.dx) {
     ball.dx = -ball.dx;
     ball.x = ball.radius;
   }
