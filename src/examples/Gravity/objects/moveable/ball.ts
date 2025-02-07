@@ -1,96 +1,90 @@
 import {
-  getDistanceBetweenLineAndPoint,
-  getLineFunctionParams,
+    getDistanceBetweenLineAndPoint,
 } from "../../utils/math";
-import { Obstacle } from "./static/obstacle";
+import {Moveable} from "./main.ts";
+import {StaticLine} from "../static/staticLine.ts";
 
-export type Ball = {
-  x: number;
-  y: number;
-  dx: number;
-  dy: number;
-  radius: number;
-  color: string;
-};
+export interface Ball extends Moveable {
+    radius: number
+}
 
-export const addBall = (balls: Ball[], config: Ball) => {
-  const ball: Ball = {
-    ...config,
-  };
+export type BallConfig = Pick<Ball, "center" | "radius" | "world" | "color" | "velocity" | "acceleration">
 
-  balls.push(ball);
+export class Ball implements Ball {
+    constructor(config: BallConfig) {
+        this.center = config.center;
+        this.radius = config.radius;
+        this.world = config.world;
+        this.color = config.color;
+        this.velocity = config.velocity;
+        this.acceleration = config.acceleration;
+        this.timeoutBetweenCollisions = 10;
+        this.timeoutBetweenCollisionsInProgress = false;
+        this.velocity.start = {x: 0, y: 0};
+        this.acceleration.start = {x: 0, y: 0};
 
-  return ball;
-};
-
-const drawBall = (
-  context: CanvasRenderingContext2D,
-  ball: Ball,
-  obstacles: Obstacle[]
-) => {
-  context.beginPath();
-  const bottom = ball.y + ball.radius;
-  const right = ball.x + ball.radius;
-  const left = ball.x - ball.radius;
-  const top = ball.y - ball.radius;
-
-  // if (bottom > context.canvas.height - ball.dy) {
-  //   ball.dy = 0;
-  //   ball.y = context.canvas.height - ball.radius;
-  // }
-  // if (top < ball.dy) {
-  //   ball.dy = 0;
-  //   ball.y = ball.radius;
-  // }
-  // if (right > context.canvas.width - ball.dx) {
-  //   ball.dx = -ball.dx;
-  //   ball.x = context.canvas.width - ball.radius;
-  // }
-  // if (left < ball.dx) {
-  //   ball.dx = -ball.dx;
-  //   ball.x = ball.radius;
-  // }
-
-  // Check if the ball collides with any obstacle
-  obstacles.forEach((obstacle) => {
-    const { lines } = obstacle;
-    const ballCenter = { x: ball.x, y: ball.y };
-    for (let i = 0; i < lines.length; i++) {
-      const firstPoint = lines[i];
-      const secondPoint = i === lines.length - 1 ? lines[0] : lines[i + 1];
-
-      if (ballCenter.x < firstPoint.x || ballCenter.x > secondPoint.x) {
-        continue;
-      }
-
-      if (
-        getDistanceBetweenLineAndPoint(firstPoint, secondPoint, ballCenter) <
-        ball.radius
-      ) {
-        const lineFunction = getLineFunctionParams(firstPoint, secondPoint);
-
-        const newY = lineFunction[2](ball.x) - ball.radius;
-
-        ball.y = newY;
-        ball.dy = 0;
-
-        break;
-      }
+        this.world.addMoveableObject(this);
     }
-  });
 
-  context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-  context.fillStyle = ball.color;
-  context.fill();
-};
+    draw() {
+        const context = this.world.context;
 
-export const drawBalls = (
-  context: CanvasRenderingContext2D,
-  balls: Ball[],
-  obstacles: Obstacle[]
-) => {
-  context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-  balls.forEach((ball) => {
-    drawBall(context, ball, obstacles);
-  });
-};
+        context.save();
+        context.beginPath();
+        context.arc(this.center.x, this.center.y, this.radius, 0, Math.PI * 2);
+        context.fillStyle = this.color;
+        context.fill();
+        context.restore();
+    }
+
+    move() {
+        this.checkStaticCollisions();
+        this.center.x += this.velocity.end.x;
+        this.center.y += this.velocity.end.y;
+
+        this.velocity = this.velocity.add(this.acceleration);
+    }
+
+    reflectLine(line: StaticLine) {
+        const normal = line.getNormal();
+        const scalar = this.velocity.scalarProduct(normal);
+
+        const vNormal = normal.scale(scalar);
+
+        const vTangent = this.velocity.tangentComponent(vNormal);
+
+        const vNormalReversed = vNormal.reverse();
+
+        console.log("here")
+
+        this.velocity = vTangent.add(vNormalReversed).scale(1 - this.world.kineticLoss);
+    }
+
+    checkStaticCollisions() {
+        // const context = this.world.context;
+        if (this.timeoutBetweenCollisionsInProgress)
+            return;
+        this.world.staticObjects.forEach((staticObject) => {
+            staticObject.toLines().forEach((line) => {
+                const firstPoint = line.line[0];
+                const secondPoint = line.line[1];
+
+                const minX = Math.min(firstPoint.x, secondPoint.x);
+                const maxX = Math.max(firstPoint.x, secondPoint.x);
+
+                if ((this.center.x < minX || this.center.x > maxX) && minX !== maxX) {
+                    return;
+                }
+                if (getDistanceBetweenLineAndPoint(firstPoint, secondPoint, this.center) < this.radius) {
+                    this.reflectLine(line)
+                    this.timeoutBetweenCollisionsInProgress = true;
+                    setTimeout(() => {
+                        this.timeoutBetweenCollisionsInProgress = false
+                    }, this.timeoutBetweenCollisions)
+                    // this.acceleration.toZero();
+                    // this.velocity.toZero();
+                }
+            })
+        })
+    }
+}

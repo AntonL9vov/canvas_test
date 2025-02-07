@@ -19,7 +19,7 @@ export const addObstacle = (obstacle: Obstacle, obstacles: Obstacle[]) => {
 const drawObstacle = (
   context: CanvasRenderingContext2D,
   obstacle: Obstacle
-) => {
+) => {``
   context.beginPath();
   context.fillStyle = obstacle.color;
   context.moveTo(obstacle.lines[0].x, obstacle.lines[0].y);

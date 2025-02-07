@@ -1,89 +1,77 @@
-import { CanvasConfig, createCanvas } from "../../bin/createCanvas.ts";
-import { addBall, Ball, drawBalls } from "./objects/moveable/ball.ts";
-import { addListeners, Handler } from "./listeners.ts";
-import { drawObstacles, Obstacle } from "./objects/static/obstacle.ts";
-import { getDistanceBetweenLineAndPoint } from "./utils/math.ts";
+import {CanvasConfig, createCanvas} from "../../bin/createCanvas.ts";
+import {toZeroToOne, World, WorldConfig} from "./world.ts";
+import {StaticLine} from "./objects/static/staticLine.ts";
+import {Ball} from "./objects/moveable/ball.ts";
+import {Vector} from "./utils/vectors.ts";
 
-export const gravity = (config?: CanvasConfig) => {
-  const canvas = createCanvas(config);
+export const init = (config?: CanvasConfig) => {
+    const canvas = createCanvas(config);
 
-  const balls: Ball[] = [];
-  const gravityForce = 10;
-
-  const obstacle: Obstacle = {
-    lines: [
-      { x: 100, y: 500 },
-      { x: 100, y: 400 },
-      { x: 300, y: 400 },
-      { x: 300, y: 300 },
-      { x: 400, y: 300 },
-      { x: 400, y: 500 },
-    ],
-    color: "black",
-  };
-
-  const obstacles = [obstacle];
-
-  drawGravity(canvas, balls, gravityForce, obstacles);
-};
-
-const drawGravity = (
-  canvas: HTMLCanvasElement,
-  balls: Ball[],
-  gravityForce: number,
-  obstacles: Obstacle[] = []
-) => {
-  const context = canvas.getContext("2d");
-
-  if (!context) {
-    throw new Error("Can not get 2D context");
-  }
-
-  drawObstacles(context, obstacles);
-
-  gravityAnimation(context, balls, obstacles);
-
-  const standartBall: Ball = {
-    x: 0,
-    y: 0,
-    dx: 0,
-    dy: gravityForce,
-    radius: 10,
-    color: "pink",
-  };
-
-  const handlers: Handler[] = [];
-
-  const addBallHandler = (event: MouseEvent) => {
-    const config: Ball = {
-      ...standartBall,
-      x: event.clientX - standartBall.radius,
-      y: event.clientY - standartBall.radius,
+    const worldConfig: WorldConfig = {
+        gravityForce: 10,
+        staticObjects: [],
+        moveableObjects: [],
+        canvas,
+        handlers: [],
+        kineticLoss: toZeroToOne(0.1)
     };
 
-    addBall(balls, config);
-  };
+    const world = createWorld(worldConfig);
 
-  handlers.push({
-    handler: addBallHandler,
-    event: "click",
-  });
+    new StaticLine({
+        line: [{x: 0, y: 500}, {x: 500, y: 500}],
+        world,
+        lineWidth: 1,
+        color: 'red',
+        lineCap: 'round',
+    })
 
-  const removeEventListeners = addListeners(canvas, handlers);
-};
+    new StaticLine({
+        line: [{x: 300, y: 400}, {x: 500, y: 400}],
+        world,
+        lineWidth: 1,
+        color: 'red',
+        lineCap: 'round',
+    })
 
-const gravityAnimation = (
-  context: CanvasRenderingContext2D,
-  balls: Ball[],
-  obstacles: Obstacle[]
-) => {
-  balls.forEach((ball) => {
-    ball.x += ball.dx;
-    ball.y += ball.dy;
-  });
+    new StaticLine({
+        line: [{x: 0, y: 0}, {x: 500, y: 0}],
+        world,
+        lineWidth: 1,
+        color: 'red',
+        lineCap: 'round',
+    })
 
-  drawBalls(context, balls, obstacles);
-  drawObstacles(context, obstacles);
+    new StaticLine({
+        line: [{x: 100, y: 0}, {x: 0, y: 500}],
+        world,
+        lineWidth: 1,
+        color: 'red',
+        lineCap: 'round',
+    })
 
-  requestAnimationFrame(() => gravityAnimation(context, balls, obstacles));
-};
+    new StaticLine({
+        line: [{x: 500, y: 0}, {x: 500, y: 500}],
+        world,
+        lineWidth: 1,
+        color: 'red',
+        lineCap: 'round',
+    })
+
+    new Ball({
+        center: {x: 100, y: 300},
+        radius: 10,
+        color: 'blue',
+        world,
+        velocity: new Vector({x: 0, y: 0}, {x: 1, y: 10}),
+        acceleration: new Vector({x: 0, y: 0}, {x: 0, y: 0.05}),
+    })
+}
+
+export const createWorld = (worldConfig: WorldConfig) => {
+    const world = new World(worldConfig);
+
+    world.startWorld();
+
+    return world;
+}
