@@ -13,13 +13,13 @@ export const init = (config?: CanvasConfig) => {
         moveableObjects: [],
         canvas,
         handlers: [],
-        kineticLoss: toZeroToOne(0.1)
+        kineticLoss: toZeroToOne(0.3)
     };
 
     const world = createWorld(worldConfig);
 
     new StaticLine({
-        line: [{x: 0, y: 500}, {x: 500, y: 500}],
+        line: [{x: 0, y: 700}, {x: 1200, y: 700}],
         world,
         lineWidth: 1,
         color: 'red',
@@ -27,7 +27,7 @@ export const init = (config?: CanvasConfig) => {
     })
 
     new StaticLine({
-        line: [{x: 300, y: 400}, {x: 500, y: 400}],
+        line: [{x: 1100, y: 500}, {x: 1100, y: 600}],
         world,
         lineWidth: 1,
         color: 'red',
@@ -35,7 +35,7 @@ export const init = (config?: CanvasConfig) => {
     })
 
     new StaticLine({
-        line: [{x: 0, y: 0}, {x: 500, y: 0}],
+        line: [{x: 1110, y: 500}, {x: 1110, y: 600}],
         world,
         lineWidth: 1,
         color: 'red',
@@ -43,7 +43,7 @@ export const init = (config?: CanvasConfig) => {
     })
 
     new StaticLine({
-        line: [{x: 100, y: 0}, {x: 0, y: 500}],
+        line: [{x: 1100, y: 500}, {x: 1110, y: 500}],
         world,
         lineWidth: 1,
         color: 'red',
@@ -51,21 +51,80 @@ export const init = (config?: CanvasConfig) => {
     })
 
     new StaticLine({
-        line: [{x: 500, y: 0}, {x: 500, y: 500}],
+        line: [{x: 1100, y: 600}, {x: 1200, y: 600}],
         world,
         lineWidth: 1,
         color: 'red',
         lineCap: 'round',
     })
 
-    new Ball({
-        center: {x: 100, y: 300},
-        radius: 10,
-        color: 'blue',
+    new StaticLine({
+        line: [{x: 1100, y: 590}, {x: 1200, y: 590}],
         world,
-        velocity: new Vector({x: 0, y: 0}, {x: 1, y: 10}),
-        acceleration: new Vector({x: 0, y: 0}, {x: 0, y: 0.05}),
+        lineWidth: 1,
+        color: 'red',
+        lineCap: 'round',
     })
+
+    new StaticLine({
+        line: [{x: 0, y: 0}, {x: 1200, y: 0}],
+        world,
+        lineWidth: 1,
+        color: 'red',
+        lineCap: 'round',
+    })
+
+    new StaticLine({
+        line: [{x: 0, y: 0}, {x: 0, y: 700}],
+        world,
+        lineWidth: 1,
+        color: 'red',
+        lineCap: 'round',
+    })
+
+    new StaticLine({
+        line: [{x: 1200, y: 0}, {x: 1200, y: 700}],
+        world,
+        lineWidth: 1,
+        color: 'red',
+        lineCap: 'round',
+    })
+
+
+    let mouseDownRemember: MouseEvent | null = null;
+
+    const onMouseDown = (event: MouseEvent) => {
+        mouseDownRemember = event
+    }
+
+    const addNewBallCustomVelocity = (event: MouseEvent) => {
+        new Ball({
+            center: {x: event.x, y: event.y},
+            radius: 10,
+            color: 'blue',
+            world,
+            velocity: new Vector({x: 0, y: 0}, {
+                x: (mouseDownRemember!.x - event.x) / 10,
+                y: (mouseDownRemember!.y - event.y) / 10
+            }),
+            acceleration: new Vector({x: 0, y: 0}, {x: 0, y: 0.07}),
+        })
+
+        mouseDownRemember = null
+    }
+
+
+    const handler = {
+        event: 'mousedown',
+        handler: onMouseDown
+    }
+
+    const handler2 = {
+        event: 'mouseup',
+        handler: addNewBallCustomVelocity
+    }
+
+    world.addListeners([handler, handler2]);
 }
 
 export const createWorld = (worldConfig: WorldConfig) => {

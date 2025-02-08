@@ -10,6 +10,7 @@ export interface Vector {
     scale: (scale: number) => Vector;
     reverse: () => Vector;
     tangentComponent: (v: Vector) => Vector;
+    getMagnitude: () => number;
 }
 
 export class Vector implements Vector {
@@ -38,9 +39,13 @@ export class Vector implements Vector {
         return new Vector({x: startX, y: startY}, {x: endX, y: endY});
     }
 
+    getMagnitude = () => {
+        return Math.sqrt((this.end.x - this.start.x) ** 2 + (this.end.y - this.start.y) ** 2);
+    }
+
     getNormal = () => {
-        // TODO:Implement
-        return new Vector(this.end, this.start);
+        const mag = this.getMagnitude();
+        return new Vector(this.start, {x: this.end.x / mag, y: this.end.y / mag});
     }
 
     scalarProduct = (v: Vector) => {

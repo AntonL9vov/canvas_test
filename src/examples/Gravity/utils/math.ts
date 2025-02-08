@@ -25,6 +25,16 @@ export const getDistanceBetweenLineAndPoint = (
     return distance;
 };
 
+export const getDistanceBetweenTwoPoints = (
+    firstPoint: Coordinate,
+    secondPoint: Coordinate
+) => {
+    return Math.sqrt(
+        (firstPoint.x - secondPoint.x) * (firstPoint.x - secondPoint.x) +
+        (firstPoint.y - secondPoint.y) * (firstPoint.y - secondPoint.y)
+    );
+}
+
 export const getLineAndCircleIntersection = (
     firstPoint: Coordinate,
     secondPoint: Coordinate,

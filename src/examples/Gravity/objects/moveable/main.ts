@@ -1,6 +1,7 @@
 import {Point, WorldObject} from "../main.ts";
 import {Vector} from "../../utils/vectors.ts";
 import {StaticLine} from "../static/staticLine.ts";
+import {Ball} from "./ball.ts";
 
 export interface Moveable extends WorldObject {
     move: () => void;
@@ -11,4 +12,8 @@ export interface Moveable extends WorldObject {
     reflectLine: (line: StaticLine) => void;
     timeoutBetweenCollisions: number;
     timeoutBetweenCollisionsInProgress: boolean;
+    checkMoveableCollisions: () => void;
+    radius: number;
+    reflectBalls: (ball: Ball) => void;
+    uuid: string;
 }

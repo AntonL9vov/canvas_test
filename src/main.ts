@@ -5,4 +5,4 @@ import {init} from "./examples/gravity/main";
 // clock();
 // ball();
 
-init();
+init({height: 700, width: 1200});
